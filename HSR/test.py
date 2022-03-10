@@ -2,14 +2,26 @@ import sys
 import socket
 import numpy as np
 import re
+import pwn 
+import fileinput 
 
 hostname = "109.232.232.225"
 port = "15003"
-datas = []
 
+"""
+r = pwn.remote(hostname, int(port))
+recv = r.recvrepeat(5)
+
+print(recv)
+
+r.sendline(b"coucou")
+"""
+
+datas = []
 summ = []
 results = []
 
+"""
 def netcat(host, port, content=""):
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	s.connect((host, int(port)))
@@ -25,9 +37,9 @@ def netcat(host, port, content=""):
 		
 	
 netcat(hostname, port)
-
-
 """
+
+
 hostname = "109.232.232.225"
 port = "15003"
 ans = ""
@@ -55,4 +67,3 @@ for line in fileinput.input():
 		summ = []
 		results = []
 		ans = ""	
-"""

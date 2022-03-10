@@ -3,48 +3,50 @@ import numpy as np
 import socket
 import re
 import sys
-import fileinput
 import time
+import pwn
 
 LENGTH = 2048
 address = "109.232.232.225"
 port = 15003
+ans = ''
 
-class Netcat:
-	def __init__(self, ip, port):
-		self.buff = ""
-		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		self.socket.connect((ip, port))
-		
-	
-	def read(self, length=LENGTH):
-		return self.socket.recv(length)
-		
-		
-	def read_until(self, data, length=LENGTH):
-		while not data in self.buff:
-			self.buff += self.socket.recv(length)
-		
-		pos = self.buff.find(data)
-		rval = self.buff[:pos + len(data)]
-		self.buff = self.buff[pos + len(data):]
-		
-		return rval
-	
-	
-	def write(self, data):
-		self.socket.send(data)
-		
-	
-	def close(self):
-		self.socket.close()
-		
+lines = []
+summ = []
+results = []
+
+print(__name__)
 		
 if __name__ == "__main__":
-	nc = Netcat(address, port)
-	while True:
-		nc.buff = b''
-		string = nc.read_until(b"Resultat")
-		print(string)
-		time.sleep(2)
-		nc.write("coucou".encode())
+	r = pwn.remote(address, port)
+	
+	for i in range(100):
+		recv = r.recvrepeat(1.2)
+		recv = recv.decode()
+		print(recv)
+		datas = recv.split("\n")
+		for line in datas:
+			if "PASSWORD" in line:
+				lines.append(line)
+		for line in lines:
+			line = line.replace('[+]', '')
+			line = re.sub("\*[A-Z ]*\[\s*\d+\]\s*(\+|\=)", "", line)
+			line = line.split()
+			line = list(map(int, line))
+			results.append(line.pop(-1))
+			summ.append(line)
+		
+		x = np.linalg.solve(summ, results)
+		y = list(map(round, x))
+		for el in y:
+			ans += chr(el)
+		print(f"{i}: " + ans)
+		r.sendline(ans.encode())
+		summ = []
+		lines = []
+		results = []
+		datas = []
+		ans = ""
+	print(recv)
+	recv = r.recvrepeat(5)
+	print(recv)
